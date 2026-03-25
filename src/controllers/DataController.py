@@ -22,7 +22,8 @@ class DataController(BaseController):
     def generate_unique_file_path(self, project_id:str, file_name:str):
         clean_file_name = self.get_clean_file_name(file_name)
         random_key = self.genrate_random_key()
-        new_file_path = os.path.join(self.files_dir,
+        project_dir = ProjectController().get_project_dir(project_id)
+        new_file_path = os.path.join(project_dir,
                                      random_key + '_' + clean_file_name )
         while os.path.exists(new_file_path):
             random_key = self.genrate_random_key()
