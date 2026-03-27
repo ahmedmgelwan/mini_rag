@@ -19,7 +19,7 @@ data_router = APIRouter(
 
 @data_router.post('/upload/{project_id}')
 async def upload(request:Request,project_id:str ,file:UploadFile, app_settings:Settings =Depends(get_settings)):
-    project_model = ProjectModel(request.app.db_client)
+    project_model = await ProjectModel.create_instance(request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
     data_controller = DataController()
     is_valid, signal = data_controller.validate_uploaded_file(file)
@@ -58,7 +58,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
-    project_model = ProjectModel(db_clinet=request.app.db_client)
+    project_model = await ProjectModel.create_instance(db_clinet=request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
 
     process_controller = ProcessController(project_id)
@@ -81,7 +81,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
                             )
                             for i, chunk in enumerate(text_chunks)
                             ]
-    chunk_model = DataChunkModel(request.app.db_client)
+    chunk_model = await DataChunkModel.create_instance(request.app.db_client)
     # return text_chunk_records
     if do_reset == 1:
         _ = await chunk_model.delete_chunks_by_project_id(project.id)
