@@ -29,7 +29,6 @@ class DataController(BaseController):
             random_key = self.genrate_random_key()
             new_file_path = os.path.join(self.files_dir,
                                         random_key + '_' + clean_file_name )
-            print(new_file_path)
         return new_file_path, random_key + '_' + clean_file_name
     
     
