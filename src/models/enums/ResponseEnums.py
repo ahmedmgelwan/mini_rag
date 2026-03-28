@@ -7,3 +7,5 @@ class ResposeSignal(Enum):
     FILE_UPLOADED_FAIL = 'file_uploaded_failed'
     FILE_PROCESSING_SUCCESS = 'file_processing_success'
     FILE_PROCESSING_FAIL = 'file_processing_failed'
+    FILE_ID_ERROR = 'file_id_error'
+    NO_FILES_ERROR = 'no_files_with_this_project'
