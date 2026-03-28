@@ -32,8 +32,9 @@ class AssetModel(BaseDataModel):
         asset.id = record.inserted_id
         return record
     
-    async def get_assets_by_project_id(self, project_id:ObjectId):
+    async def get_assets_by_project_id(self, project_id:ObjectId, asset_type:str):
         result = await self.collection.find({
-            'project_id': ObjectId(project_id) if isinstance(project_id, str) else project_id
+            'project_id': ObjectId(project_id) if isinstance(project_id, str) else project_id,
+            'asset_type': asset_type
         })
         return result
