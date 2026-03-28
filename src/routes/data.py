@@ -1,13 +1,15 @@
 from fastapi import FastAPI, APIRouter,UploadFile, status, Depends, Request
 from fastapi.responses import JSONResponse
 from controllers import DataController, ProcessController
-from models.enums import ResposeSignal
+from models.enums import ResposeSignal, AssetTypeEnum
 import aiofiles
 from helpers.config import get_settings, Settings
 import logging
 from .schemes import ProcessRequest
-from models import ProjectModel,DataChunkModel
-from models.db_schemes import DataChunk
+from models import ProjectModel,DataChunkModel, AssetModel
+from models.db_schemes import DataChunk, Asset
+import os
+
 
 
 logger = logging.getLogger('uvicorn.error')
@@ -37,6 +39,17 @@ async def upload(request:Request,project_id:str ,file:UploadFile, app_settings:S
         async with aiofiles.open(file_path,'wb') as f:
             while chunk := await file.read(app_settings.FILE_DEFUALT_CHUNK_SIZE):
                 await f.write(chunk)
+        try:
+            asset_model = await AssetModel.create_instance(request.app.db_client)
+            _ = await asset_model.create_asset(asset=Asset(
+                project_id = project.id,
+                asset_name = file_id,
+                asset_type = AssetTypeEnum.FILE.value,
+                asset_size = file.size,
+            ))
+        except Exception as e:
+            print('error in stroing assets line 50')
+            print(e)
         return {
             'signal': ResposeSignal.FILE_UPLODED_SUCESS.value,
             'file_id': file_id,
@@ -87,6 +100,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
         _ = await chunk_model.delete_chunks_by_project_id(project.id)
 
     no_records = await chunk_model.insert_many_chunks(text_chunk_records)
+    
     return {
         'signal': ResposeSignal.FILE_PROCESSING_SUCCESS.value,
         'no_inseted_chunks': no_records
