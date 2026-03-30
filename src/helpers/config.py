@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     INPUT_DAFAULT_MAX_CHARACTERS: int
     GENERATION_DAFAULT_MAX_TOKENS: int
     GENERATION_DAFAULT_TEMPERATURE: float
+    VECTOR_DB_BACKEND: str
+    VECTOR_DB_PATH: str
+    VECTOR_DB_DISTANCE_METHOD: str
+
 
     class Config:
         env_file= '.env'

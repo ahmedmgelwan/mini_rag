@@ -8,11 +8,16 @@ class BaseController:
         self.app_setings = get_settings()
         self.base_dir = os.path.dirname(os.path.dirname(__file__))
         self.files_dir = os.path.join(self.base_dir, 'assets/files')
-
+        self.database_dir = os.path.join(self.base_dir,'assets/database')
 
     def genrate_random_key(self, size:int=10):
         return ''.join(
                 random.choices(string.ascii_lowercase+string.digits,k=size)
             )
     
+    def get_database_path(self, db_name: str):
+        database_path = os.path.join(self.database_dir, db_name)
+        if not os.path.exists(database_path):
+            os.makedirs(database_path)
         
+        return database_path
