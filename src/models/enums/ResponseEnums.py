@@ -9,3 +9,7 @@ class ResposeSignal(Enum):
     FILE_PROCESSING_FAIL = 'file_processing_failed'
     FILE_ID_ERROR = 'file_id_error'
     NO_FILES_ERROR = 'no_files_with_this_project'
+    PROJECT_NOT_FOUND_ERROR = 'project_not_found'
+    INSERT_INTO_VECTOR_DB_ERROR = 'insert_into_vectordb_error'
+    INSERT_INTO_VECTOR_DB_SUCCESS = 'insert_into_vectordb_success'
+    VECTOR_DB_COLLECTION_INFO_RETEIVED = 'collection_info_reteived'

@@ -58,7 +58,7 @@ class CoHereProvider(LLMInterface):
             max_input_tokens=self.defult_max_input_tokens,
             max_tokens=max_output_tokens,
             temperature=temprature,
-            message=self.construct_prompt(prompt)
+            message=self.construct_prompt(prompt, role="user")
         )
         if not response or not response.text:
             self.logger.error('Error while generating text with CoHere')
@@ -81,7 +81,7 @@ class CoHereProvider(LLMInterface):
         
         response = self.client.embed(
             model= self.embedding_model_id,
-            texts= [self.construct_prompt(text)],
+            texts= [self.processing_text(text)],
             input_type=input_type,
             embedding_types=['float']
         )

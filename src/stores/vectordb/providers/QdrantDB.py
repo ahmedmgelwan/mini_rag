@@ -28,7 +28,7 @@ class QdrantDB(VectorDBInterface):
         return self.client.get_collections()
     
     def get_collection_info(self, collection_name: str):
-        return self.client.get_collection()
+        return self.client.get_collection(collection_name)
     
     def delete_collection(self, collection_name: str):
         if self.is_collection_existed(collection_name=collection_name):
@@ -69,21 +69,22 @@ class QdrantDB(VectorDBInterface):
             metadata = [None] * len(texts)
         
         if not record_ids:
-            record_ids = [None] * len(texts)
+            record_ids = list(range(0,len(texts)))
 
         for i in range(0, len(texts), batch_size):
             batch_end = i + batch_size
             batch_text = texts[i:batch_end]
             batch_vectors = vectors[i:batch_end]
             batch_metadata = metadata[i:batch_end]
+            batch_record_ids = record_ids[i: batch_end]
 
-            batch_records = [models.Record(
+            batch_records = [models.Record(id=batch_record_ids[j],
                                             vector=batch_vectors[j],
                                             payload={'text': batch_text[j], 'metadata': batch_metadata[j]}
                                              )    for j in range(len(batch_text))]
-
+            print(batch_records)
             try:
-                _ = self.client.upload_collection(collection_name=collection_name, records = batch_records)
+                _ = self.client.upload_records(collection_name=collection_name, records = batch_records)
             except Exception as e:
                 self.logger.error(f'Error while inserting batch {e}')
                 return False
