@@ -13,3 +13,5 @@ class ResposeSignal(Enum):
     INSERT_INTO_VECTOR_DB_ERROR = 'insert_into_vectordb_error'
     INSERT_INTO_VECTOR_DB_SUCCESS = 'insert_into_vectordb_success'
     VECTOR_DB_COLLECTION_INFO_RETEIVED = 'collection_info_reteived'
+    VECTOR_DB_SEARCH_ERROR = "vector_db_search_error"
+    VECTOR_DB_SEARCH_SUCCESS = "vector_db_search_success"
