@@ -16,4 +16,5 @@ class VectorDBFactory:
                 db_path= db_path,
                 distance_method=self.config.VECTOR_DB_DISTANCE_METHOD
             )
+        return None
 
