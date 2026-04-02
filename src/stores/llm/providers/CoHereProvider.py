@@ -15,13 +15,13 @@ class CoHereProvider(LLMInterface):
                  ):
         self.api_key = api_key
         self.base_url = base_url
-        self.defult_max_input_tokens = defult_max_output_tokens
+        self.defult_max_input_tokens = defult_max_input_tokens
         self.temprature = temprature
 
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
-
+        self.enums = CoHereEnums
         self.client = cohere.Client(api_key = self.api_key)
         
         self.logger = logging.getLogger(__name__)
@@ -36,7 +36,8 @@ class CoHereProvider(LLMInterface):
 
     
     def processing_text(self, text: str):
-        return text[:self.defult_max_input_tokens].strip()
+        # Don't truncate here to preserve full context including question
+        return text.strip()
     
     def generate_text(self, prompt: str, chat_history: list = [],
                        max_output_tokens: int= None, temprature: float=None):
@@ -58,7 +59,7 @@ class CoHereProvider(LLMInterface):
             max_input_tokens=self.defult_max_input_tokens,
             max_tokens=max_output_tokens,
             temperature=temprature,
-            message=self.construct_prompt(prompt, role="user")
+            message=self.processing_text(prompt)
         )
         if not response or not response.text:
             self.logger.error('Error while generating text with CoHere')
@@ -75,9 +76,9 @@ class CoHereProvider(LLMInterface):
         if not self.embedding_model_id:
             self.logger.error('Embedding model for CoHere was not set')
             return None
-        input_type = CoHereEnums.DOCUMENT.value
+        input_type = self.enums.DOCUMENT.value
         if document_type == DocumentTypeEnum.QUERY.value:
-            input_type = CoHereEnums.QUERY.value
+            input_type = self.enums.QUERY.value
         
         response = self.client.embed(
             model= self.embedding_model_id,

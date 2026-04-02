@@ -5,7 +5,7 @@ from routes.data import data_router
 from routes.nlp import nlp_router
 from motor.motor_asyncio import AsyncIOMotorClient
 from helpers.config import get_settings
-from stores.llm import LLMProviderFactory
+from stores.llm import LLMProviderFactory, TemplateParser
 from stores.vectordb import VectorDBFactory
 
 app = FastAPI()
@@ -28,6 +28,10 @@ async def startup_db_client():
     vector_db_factory = VectorDBFactory(config=app_settings)
     app.vector_db_client = vector_db_factory.create(provider=app_settings.VECTOR_DB_BACKEND)
     app.vector_db_client.connect()
+    app.template_parser = TemplateParser(
+        language=app_settings.PRIMARY_LANG,
+        default_languae=app_settings.DEFAULT_LANG
+    )
     
 @app.on_event('shutdown')
 async def shutdown_db_client():

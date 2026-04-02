@@ -15,12 +15,13 @@ class OpenAIProvider(LLMInterface):
         
         self.api_key = api_key
         self.base_url = base_url
-        self.defult_max_input_tokens = defult_max_output_tokens
+        self.defult_max_input_tokens = defult_max_input_tokens
         self.temprature = temprature
 
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
+        self.enums = OpenAIEnums
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.logger = logging.getLogger(__file__)
@@ -33,7 +34,8 @@ class OpenAIProvider(LLMInterface):
         self.embedding_size = embedding_size
 
     def process_text(self, text: str):
-        return text[:self.defult_max_input_tokens].strip()
+        # Don't truncate here to preserve full context including question
+        return text.strip()
     
     def generate_text(self, prompt: str, chat_history: list = [],
                        max_output_tokens: int= None, temprature: float=None):
@@ -59,7 +61,7 @@ class OpenAIProvider(LLMInterface):
             self.logger.error('Error while generating text with OpenAI')
             return None
         
-        return response.choices[0].message['content']
+        return response.choices[0].message.content
         
 
     def generate_embedding(self, text: str, document_type:str = None):

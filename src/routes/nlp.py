@@ -4,6 +4,8 @@ from .schemes import PushRequest, SearchRequest
 from models import ProjectModel, DataChunkModel
 from models.enums import ResposeSignal
 from controllers import NLPController
+from stores.llm import TemplateParser
+
 
 nlp_router = APIRouter(
     prefix='/api/v1',
@@ -26,7 +28,8 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
     nlp_controller = NLPController(
         vector_db_client=request.app.vector_db_client,
         embedding_client=request.app.embedding_client,
-        generation_client=request.app.generation_client
+        generation_client=request.app.generation_client,
+        template_parser=request.app.template_parser
     )
     has_records = True
     page_no = 1
@@ -39,7 +42,6 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
         page_chunks = await chunk_model.get_project_chunks(
             project_id=project.id,
             page_no=page_no)
-        print('Page No.', page_no)
         if len(page_chunks):
             page_no += 1
         
@@ -89,7 +91,8 @@ async def get_project_index_info(request: Request, project_id: str, ):
     nlp_controller = NLPController(
         vector_db_client=request.app.vector_db_client,
         embedding_client=request.app.embedding_client,
-        generation_client=request.app.generation_client
+        generation_client=request.app.generation_client,
+        template_parser=request.app.template_parser
     )
 
     collection_info = nlp_controller.get_vector_db_collection_info(project=project)
@@ -117,7 +120,8 @@ async def search_index(request: Request, project_id: str, search_request: Search
     nlp_controller = NLPController(
         vector_db_client=request.app.vector_db_client,
         embedding_client=request.app.embedding_client,
-        generation_client=request.app.generation_client
+        generation_client=request.app.generation_client,
+        template_parser=request.app.template_parser
     )
     results = nlp_controller.search_vector_db_collection(project=project,
                                                          query=search_request.text,
@@ -132,6 +136,42 @@ async def search_index(request: Request, project_id: str, search_request: Search
     
     return {
         'signal': ResposeSignal.VECTOR_DB_SEARCH_SUCCESS.value,
-        "results": [r.dict() for r in results]
+        "results": results
     }
 
+@nlp_router.post("/answer/{project_id}")
+async def answer(request: Request, project_id: str, search_request: SearchRequest):
+    project_model = await ProjectModel.create_instance(request.app.db_client)
+    chunk_model = await DataChunkModel.create_instance(request.app.db_client)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
+    if not project:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                'signal': ResposeSignal.PROJECT_NOT_FOUND_ERROR.value
+            }
+        )
+    nlp_controller = NLPController(
+        vector_db_client=request.app.vector_db_client,
+        embedding_client=request.app.embedding_client,
+        generation_client=request.app.generation_client,
+        template_parser=request.app.template_parser
+    )
+    answer, full_prompt, chat_history = nlp_controller.answer_rag_question(project=project,
+                                                                           query=search_request.text,
+                                                                           limit=search_request.limit)
+    
+    if not answer:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                'signal': ResposeSignal.RAG_ANSWER_ERROR.value
+            }
+        )
+    
+    return {
+        'signal': ResposeSignal.RAG_ANSWER_SUCCESS.value,
+        'answer': answer,
+        'full_prompt': full_prompt,
+        'chat_history': chat_history
+    }

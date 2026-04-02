@@ -3,6 +3,7 @@ from qdrant_client import models, QdrantClient
 from ..VectorDBEnums import DistacneMethodEnums
 from typing import List 
 import logging
+from models.db_schemes.data_chunk import RetrivedDocument
 
 class QdrantDB(VectorDBInterface):
     def __init__(self, db_path: str, distance_method: str):
@@ -82,7 +83,6 @@ class QdrantDB(VectorDBInterface):
                                             vector=batch_vectors[j],
                                             payload={'text': batch_text[j], 'metadata': batch_metadata[j]}
                                              )    for j in range(len(batch_text))]
-            print(batch_records)
             try:
                 _ = self.client.upload_records(collection_name=collection_name, records = batch_records)
             except Exception as e:
@@ -92,7 +92,18 @@ class QdrantDB(VectorDBInterface):
         return True
     
     def search_by_vector(self, collection_name: str, vector: list, limit:int=5):
-        return self.client.search(collection_name=collection_name, query_vector=vector, limit=limit)
+        results =  self.client.search(collection_name=collection_name, query_vector=vector, limit=limit)
+        if not results or len(results) ==0:
+            return None
+        
+        return [
+            RetrivedDocument(
+                **{
+                        'text': result.payload['text'],
+                        'score': result.score
+                }
+            ) for result in results
+        ]
     
     
     

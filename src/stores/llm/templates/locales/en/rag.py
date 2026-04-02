@@ -9,6 +9,7 @@ system_prompt = Template('\n'.join([
     "You have to generate response in the same language as the user's query.",
     "Be polite and respectful to the user.",
     "Be precise and concise in your response. Avoid unnecessary information.",
+    "if user ask you a question that is not mentioned on provided documents the him that `until now I have no confirmed info`"
 ]))
 
 document_prompt = Template('\n'.join([
@@ -19,7 +20,7 @@ document_prompt = Template('\n'.join([
 footer_prompt = Template('\n'.join([
     "Based only on the above documents, please generate an answer for the user.",
     "## Question: ",
-    "$query"
+    "$query",
     "",
     "## Answer:",
 ]))
