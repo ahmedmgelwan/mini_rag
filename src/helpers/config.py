@@ -7,8 +7,11 @@ class Settings(BaseSettings):
     FILE_UPLOADED_MAXIMUM_SIZE: int
     FILE_UPLOADED_ALLOWED_TYPES: list
     FILE_DEFUALT_CHUNK_SIZE: int
-    DB_URL: str
-    DB_NAME: str
+    POSTGRES_USERNAME: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_PORT: int
+    POSTGRES_HOST: str
+    POSTGRES_MAIN_DB: str
     GENERATION_BACKEND: str
     EMBEDDING_BACKEND: str
 

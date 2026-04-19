@@ -40,7 +40,7 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
     
     while has_records:
         page_chunks = await chunk_model.get_project_chunks(
-            project_id=project.id,
+            project_id=project.project_id,
             page_no=page_no)
         if len(page_chunks):
             page_no += 1

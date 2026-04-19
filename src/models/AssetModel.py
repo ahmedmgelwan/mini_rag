@@ -1,50 +1,40 @@
 from .BaseDataModel import BaseDataModel
 from .db_schemes import Asset
-from .enums import DatabaseEnum
-from bson import ObjectId
-
+from sqlalchemy.future import select
 
 class AssetModel(BaseDataModel):
     def __init__(self, db_clinet):
         super().__init__(db_clinet)
-        self.collection = self.db_client[DatabaseEnum.COLLECTION_ASSET_NAME.value]
 
     @classmethod
     async def create_instance(cls, db_client):
         instance = cls(db_client)
-        await instance.init_collection()
         return instance
 
-    async def init_collection(self):
-        all_collections = await self.db_client.list_collection_names()
-        if DatabaseEnum.COLLECTION_ASSET_NAME.value not in all_collections:
-            self.collection = self.db_client[DatabaseEnum.COLLECTION_ASSET_NAME.value]
-            indexes = Asset.get_indexes()
-            for idx in indexes:
-                await self.collection.create_index(
-                    idx['key'],
-                    name = idx['name'],
-                    unique = idx['unique']
-                )
-
     async def create_asset(self, asset: Asset):
-        record = await self.collection.insert_one(asset.dict(by_alias=True, exclude_unset=True))
-        asset.id = record.inserted_id
-        return record
-    
-    async def get_assets_by_project_id(self, project_id:ObjectId, asset_type:str):
+        async with self.db_client() as session:
+            async with session.begin():
+                session.add(asset)
+            await session.commit()
+            await session.refresh(asset)
         
-        result = await self.collection.find({
-            'project_id': ObjectId(project_id) if isinstance(project_id, str) else project_id,
-            'asset_type': asset_type
-        }).to_list(length=None)
-        return [Asset(**record) for record in result]
+        return asset
     
-    async def get_asset_record(self, project_id:ObjectId, asset_name:str):
-        record = await self.collection.find_one({
-            'project_id': ObjectId(project_id) if isinstance(project_id, str) else project_id,
-            'asset_name': asset_name
-        })
-        if record:
-            return Asset(**record)
-        return None
+    async def get_assets_by_project_id(self, project_id:str, asset_type:str):
+        project_id = int(project_id)
+        async with self.db_client() as session:
+            query = select(Asset).where(Asset.asset_project_id == project_id,
+                                        Asset.asset_type == asset_type)
+            result = await session.execute(query)
+            assets = result.scalars().all()
+            return assets
+        
+
+    async def get_asset_record(self, project_id:str, asset_name:str):
+        project_id = int(project_id)
+        async with self.db_client() as session:
+            query = select(Asset).where(Asset.asset_project_id == project_id,
+                                        Asset.asset_name == asset_name)
+            result = await session.execute(query)
+            asset = result.scalar_one_or_none()
+            return asset

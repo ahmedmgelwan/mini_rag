@@ -3,7 +3,7 @@ from qdrant_client import models, QdrantClient
 from ..VectorDBEnums import DistacneMethodEnums
 from typing import List 
 import logging
-from models.db_schemes.data_chunk import RetrivedDocument
+from models.db_schemes.mini_rag.schemes import RetrivedDocument
 
 class QdrantDB(VectorDBInterface):
     def __init__(self, db_path: str, distance_method: str):
