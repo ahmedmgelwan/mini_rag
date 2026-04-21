@@ -1,6 +1,6 @@
 # Mini RAG - Retrieval-Augmented Generation
 
-A lightweight FastAPI application for document-based Q&A using semantic search and LLM generation.
+Lightweight FastAPI application for document-based Q&A using semantic search and LLM generation.
 
 ## Features
 
@@ -8,18 +8,15 @@ A lightweight FastAPI application for document-based Q&A using semantic search a
 - **Semantic Search**: Find relevant documents using vector embeddings
 - **RAG Answers**: Generate AI responses based on retrieved documents
 - **Multi-LLM Support**: OpenAI or Cohere for embeddings & generation
+- **Multi-Vector DB**: PostgreSQL+PGVector or Qdrant
 - **Multi-language**: English & Arabic prompts
-- **Vector DB**: Qdrant for semantic storage
-- **Batch Embeddings**: Optimized API calls (N chunks = 1 embedding request)
+- **Async**: Full async/await support with SQLAlchemy
 
 ## Setup
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
+pip install -r src/requirements.txt
+cp src/.env.example src/.env
 ```
 
 ## Run
@@ -29,43 +26,42 @@ cd src
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## Environment Variables
+
+**Database**
+- `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USERNAME`, `POSTGRES_PASSWORD`, `POSTGRES_MAIN_DB`
+- `VECTOR_DB_BACKEND` - `PGVECTOR` or `QDRANT`
+- `VECTOR_DB_PATH` - Path for Qdrant (local)
+
+**LLM & Embeddings**
+- `GENERATION_BACKEND`, `EMBEDDING_BACKEND` - `openai` or `cohere`
+- `GENERATION_MODEL_ID`, `EMBEDDING_MODEL_ID`, `EMBEDDING_MODEL_SIZE`
+- `OPENAI_API_KEY`, `COHERE_API_KEY`
+
+**File Processing**
+- `FILE_DEFUALT_CHUNK_SIZE` - Chunk size in characters
+- `INPUT_DAFAULT_MAX_CHARACTERS` - Max input length
+- `GENERATION_DAFAULT_MAX_TOKENS`, `GENERATION_DAFAULT_TEMPERATURE`
+
+**Localization**
+- `PRIMARY_LANG`, `DEFAULT_LANG` - `en` or `ar`
+
 ## API Endpoints
 
-### Data Management
-- `POST /api/v1/upload/{project_id}` - Upload file to project
-- `POST /api/v1/process/{project_id}` - Split file into chunks
-
-### Vector Database
-- `POST /api/v1/push/{project_id}` - Index chunks to vector DB
-- `GET /api/v1/info/{project_id}` - Get collection stats
-
-### RAG Operations
-- `POST /api/v1/search/{project_id}` - Search documents (semantic)
-- `POST /api/v1/answer/{project_id}` - Get AI answer with sources
-
-## Configuration
-
-Key environment variables in `.env`:
-- `GENERATION_BACKEND` - `openai` or `cohere`
-- `EMBEDDING_BACKEND` - LLM provider for embeddings
-- `VECTOR_DB_BACKEND` - Vector database type
-- `PRIMARY_LANG` - Language for prompts (`en` or `ar`)
-- MongoDB, API keys, model IDs, etc.
-
-## Architecture
-
-```
-Upload File → Process Chunks → Generate Embeddings → Index to Vector DB
-                                      ↓
-                              User Query → Search Vectors → Retrieve Docs
-                                                                 ↓
-                                             Combine with Prompt Template → LLM → Answer
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/upload/{project_id}` | Upload file |
+| `POST` | `/api/v1/process/{project_id}` | Process file into chunks |
+| `POST` | `/api/v1/push/{project_id}` | Index chunks to vector DB |
+| `GET` | `/api/v1/info/{project_id}` | Get collection info |
+| `POST` | `/api/v1/search/{project_id}` | Search documents |
+| `POST` | `/api/v1/answer/{project_id}` | Get AI answer |
 
 ## Tech Stack
 
 - **Framework**: FastAPI, Uvicorn
-- **Database**: MongoDB (Motor async)
-- **Vector Store**: Qdrant
-- **LLM**: OpenAI / Cohere APIs
-- **Runtime**: Python 3.9+
+- **Database**: PostgreSQL (async with asyncpg)
+- **Vector Store**: PGVector / Qdrant
+- **ORM**: SQLAlchemy 2.0 (async)
+- **LLM**: OpenAI / Cohere
+- **Python**: 3.9+
