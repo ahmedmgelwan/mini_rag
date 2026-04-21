@@ -5,7 +5,6 @@ from routes.data import data_router
 from routes.nlp import nlp_router
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from helpers.config import get_settings
 from stores.llm import LLMProviderFactory, TemplateParser
 from stores.vectordb import VectorDBFactory
 
@@ -28,9 +27,9 @@ async def startup_db_client():
                                     model_id= app_settings.EMBEDDING_MODEL_ID,
                                     embedding_size= app_settings.EMBEDDING_MODEL_SIZE
                                 )
-    vector_db_factory = VectorDBFactory(config=app_settings)
+    vector_db_factory = VectorDBFactory(config=app_settings, db_client=app.db_client)
     app.vector_db_client = vector_db_factory.create(provider=app_settings.VECTOR_DB_BACKEND)
-    app.vector_db_client.connect()
+    await app.vector_db_client.connect()
     app.template_parser = TemplateParser(
         language=app_settings.PRIMARY_LANG,
         default_languae=app_settings.DEFAULT_LANG

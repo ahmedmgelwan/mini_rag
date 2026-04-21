@@ -34,7 +34,6 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
     has_records = True
     page_no = 1
     inserted_items_count = 0
-    idx = 0
 
     
     
@@ -48,10 +47,9 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
         if not page_chunks or len(page_chunks) ==0:
             has_records = False
             break
-        chunk_ids = list(range(idx+len(page_chunks)))
-        idx += len(page_chunks)
+        chunk_ids = [chunk.chunk_id for chunk in page_chunks]
 
-        is_inserted = nlp_controller.index_into_vecto_db(
+        is_inserted = await nlp_controller.index_into_vecto_db(
             project=project,
             chunks=page_chunks,
             chunk_ids=chunk_ids,
@@ -95,7 +93,7 @@ async def get_project_index_info(request: Request, project_id: str, ):
         template_parser=request.app.template_parser
     )
 
-    collection_info = nlp_controller.get_vector_db_collection_info(project=project)
+    collection_info = await nlp_controller.get_vector_db_collection_info(project=project)
 
     return JSONResponse(
         content={
@@ -123,7 +121,7 @@ async def search_index(request: Request, project_id: str, search_request: Search
         generation_client=request.app.generation_client,
         template_parser=request.app.template_parser
     )
-    results = nlp_controller.search_vector_db_collection(project=project,
+    results = await nlp_controller.search_vector_db_collection(project=project,
                                                          query=search_request.text,
                                                          limit=search_request.limit)
     if not results:
@@ -157,7 +155,7 @@ async def answer(request: Request, project_id: str, search_request: SearchReques
         generation_client=request.app.generation_client,
         template_parser=request.app.template_parser
     )
-    answer, full_prompt, chat_history = nlp_controller.answer_rag_question(project=project,
+    answer, full_prompt, chat_history = await nlp_controller.answer_rag_question(project=project,
                                                                            query=search_request.text,
                                                                            limit=search_request.limit)
     
