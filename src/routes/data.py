@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter,UploadFile, status, Depends, Request
 from fastapi.responses import JSONResponse
 from controllers import DataController, ProcessController
-from models.enums import ResposeSignal, AssetTypeEnum
+from models.enums import ResponseSignal, AssetTypeEnum
 import aiofiles
 from helpers.config import get_settings, Settings
 import logging
@@ -37,7 +37,7 @@ async def upload(request:Request,project_id:str ,file:UploadFile, app_settings:S
     file_path, file_id = data_controller.generate_unique_file_path(project_id,file.filename)
     try:
         async with aiofiles.open(file_path,'wb') as f:
-            while chunk := await file.read(app_settings.FILE_DEFUALT_CHUNK_SIZE):
+            while chunk := await file.read(app_settings.GENERATION_DAFAULT_CHUNK_SIZE):
                 await f.write(chunk)
         
         asset_model = await AssetModel.create_instance(request.app.db_client)
@@ -48,16 +48,16 @@ async def upload(request:Request,project_id:str ,file:UploadFile, app_settings:S
             asset_size = file.size,
         ))
         return {
-            'signal': ResposeSignal.FILE_UPLODED_SUCESS.value,
+            'signal': ResponseSignal.FILE_UPLODED_SUCESS.value,
             'file_id': file_id,
-            'projec_id': str(project.project_id)
+            'project_id': str(project.project_id)
         }
     except Exception as e:
         logger.error(f'Error while uploading {file.filename}: {e}')
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'signal': ResposeSignal.FILE_UPLOADED_FAIL.value
+                'signal': ResponseSignal.FILE_UPLOADED_FAIL.value
             }
         )
 
@@ -67,7 +67,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
-    project_model = await ProjectModel.create_instance(db_clinet=request.app.db_client)
+    project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
 
     asset_model = AssetModel(request.app.db_client)
@@ -78,7 +78,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
                 return JSONResponse(
                     status_code = status.HTTP_400_BAD_REQUEST,
                     content={
-                        'signal': ResposeSignal.FILE_ID_ERROR.value
+                        'signal': ResponseSignal.FILE_ID_ERROR.value
                     }
                 )
             project_file_ids = {asset_record.asset_id: asset_record.asset_name}
@@ -91,7 +91,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
         if len(project_file_ids) == 0:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=ResposeSignal.NO_FILES_ERROR.value
+                content=ResponseSignal.NO_FILES_ERROR.value
             )
     
     process_controller = ProcessController(project_id)
@@ -112,7 +112,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
-                    'signal':ResposeSignal.FILE_PROCESSING_FAIL.value
+                    'signal':ResponseSignal.FILE_PROCESSING_FAIL.value
                 }
             )
     
@@ -130,7 +130,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
         no_files += 1
     
     return {
-        'signal': ResposeSignal.FILE_PROCESSING_SUCCESS.value,
+        'signal': ResponseSignal.FILE_PROCESSING_SUCCESS.value,
         'no_inseted_chunks': no_records,
         'processed_files': no_files
     }

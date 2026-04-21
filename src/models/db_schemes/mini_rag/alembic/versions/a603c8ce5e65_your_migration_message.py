@@ -42,7 +42,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('asset_id'),
     sa.UniqueConstraint('asset_uuid')
     )
-    op.create_index('asset_projec_id_idx', 'assets', ['asset_project_id'], unique=False)
+    op.create_index('asset_project_id_idx', 'assets', ['asset_project_id'], unique=False)
     op.create_index('asset_type_idx', 'assets', ['asset_type'], unique=False)
     op.create_table('chunks',
     sa.Column('chunk_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -69,7 +69,7 @@ def downgrade() -> None:
     op.drop_index('chunk_asset_id_idx', table_name='chunks')
     op.drop_table('chunks')
     op.drop_index('asset_type_idx', table_name='assets')
-    op.drop_index('asset_projec_id_idx', table_name='assets')
+    op.drop_index('asset_project_id_idx', table_name='assets')
     op.drop_table('assets')
     op.drop_table('projects')
     # ### end Alembic commands ###

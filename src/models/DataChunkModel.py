@@ -5,12 +5,12 @@ from sqlalchemy.future import select
 from sqlalchemy import func, delete
 
 class DataChunkModel(BaseDataModel):
-    def __init__(self, db_clinet):
-        super().__init__(db_clinet)
+    def __init__(self, db_client):
+        super().__init__(db_client)
 
     @classmethod
-    async def create_instance(cls,db_clinet):
-        instance = cls(db_clinet)
+    async def create_instance(cls,db_client):
+        instance = cls(db_client)
         return instance
 
 

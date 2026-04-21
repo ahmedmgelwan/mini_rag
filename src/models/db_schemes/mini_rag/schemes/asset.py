@@ -20,6 +20,6 @@ class Asset(SQLAlchemyBase):
     chunks = relationship('DataChunk', back_populates='assets')
 
     __table_args__ = (
-        Index('asset_projec_id_idx', asset_project_id),
+        Index('asset_project_id_idx', asset_project_id),
         Index('asset_type_idx', asset_type)
     )

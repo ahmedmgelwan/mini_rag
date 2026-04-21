@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from .schemes import PushRequest, SearchRequest
 from models import ProjectModel, DataChunkModel
-from models.enums import ResposeSignal
+from models.enums import ResponseSignal
 from controllers import NLPController
 from stores.llm import TemplateParser
 
@@ -22,7 +22,7 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'signal': ResposeSignal.PROJECT_NOT_FOUND_ERROR.value
+                'signal': ResponseSignal.PROJECT_NOT_FOUND_ERROR.value
             }
         )
     nlp_controller = NLPController(
@@ -49,7 +49,7 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
             break
         chunk_ids = [chunk.chunk_id for chunk in page_chunks]
 
-        is_inserted = await nlp_controller.index_into_vecto_db(
+        is_inserted = await nlp_controller.index_into_vector_db(
             project=project,
             chunks=page_chunks,
             chunk_ids=chunk_ids,
@@ -60,14 +60,14 @@ async def push_project_index(request: Request, project_id: str, push_request: Pu
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
-                    'signal': ResposeSignal.INSERT_INTO_VECTOR_DB_ERROR.value
+                    'signal': ResponseSignal.INSERT_INTO_VECTOR_DB_ERROR.value
                 }
             )
         inserted_items_count += len(page_chunks)
     
     return JSONResponse(
         content={
-            "signal": ResposeSignal.INSERT_INTO_VECTOR_DB_SUCCESS.value,
+            "signal": ResponseSignal.INSERT_INTO_VECTOR_DB_SUCCESS.value,
             'inserted_items_count': inserted_items_count
         }
     )
@@ -82,7 +82,7 @@ async def get_project_index_info(request: Request, project_id: str, ):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'signal': ResposeSignal.PROJECT_NOT_FOUND_ERROR.value
+                'signal': ResponseSignal.PROJECT_NOT_FOUND_ERROR.value
             }
         )
     
@@ -97,7 +97,7 @@ async def get_project_index_info(request: Request, project_id: str, ):
 
     return JSONResponse(
         content={
-            'signal': ResposeSignal.VECTOR_DB_COLLECTION_INFO_RETEIVED.value,
+            'signal': ResponseSignal.VECTOR_DB_COLLECTION_INFO_RETEIVED.value,
             'collection_info': collection_info
         }
     )
@@ -112,7 +112,7 @@ async def search_index(request: Request, project_id: str, search_request: Search
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'signal': ResposeSignal.PROJECT_NOT_FOUND_ERROR.value
+                'signal': ResponseSignal.PROJECT_NOT_FOUND_ERROR.value
             }
         )
     nlp_controller = NLPController(
@@ -128,12 +128,12 @@ async def search_index(request: Request, project_id: str, search_request: Search
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'singal': ResposeSignal.VECTOR_DB_SEARCH_ERROR.value
+                'signal': ResponseSignal.VECTOR_DB_SEARCH_ERROR.value
             }
         )
     
     return {
-        'signal': ResposeSignal.VECTOR_DB_SEARCH_SUCCESS.value,
+        'signal': ResponseSignal.VECTOR_DB_SEARCH_SUCCESS.value,
         "results": results
     }
 
@@ -146,7 +146,7 @@ async def answer(request: Request, project_id: str, search_request: SearchReques
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'signal': ResposeSignal.PROJECT_NOT_FOUND_ERROR.value
+                'signal': ResponseSignal.PROJECT_NOT_FOUND_ERROR.value
             }
         )
     nlp_controller = NLPController(
@@ -163,12 +163,12 @@ async def answer(request: Request, project_id: str, search_request: SearchReques
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                'signal': ResposeSignal.RAG_ANSWER_ERROR.value
+                'signal': ResponseSignal.RAG_ANSWER_ERROR.value
             }
         )
     
     return {
-        'signal': ResposeSignal.RAG_ANSWER_SUCCESS.value,
+        'signal': ResponseSignal.RAG_ANSWER_SUCCESS.value,
         'answer': answer,
         'full_prompt': full_prompt,
         'chat_history': chat_history

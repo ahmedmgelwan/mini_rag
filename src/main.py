@@ -20,7 +20,7 @@ async def startup_db_client():
     llm_provider_factory = LLMProviderFactory(config=app_settings)
 
     app.generation_client = llm_provider_factory.create(provider=app_settings.GENERATION_BACKEND)
-    app.generation_client.set_genration_model(app_settings.GENERATION_MODEL_ID)
+    app.generation_client.set_generation_model(app_settings.GENERATION_MODEL_ID)
 
     app.embedding_client = llm_provider_factory.create(provider=app_settings.EMBEDDING_BACKEND)
     app.embedding_client.set_embedding_model(
@@ -32,7 +32,7 @@ async def startup_db_client():
     await app.vector_db_client.connect()
     app.template_parser = TemplateParser(
         language=app_settings.PRIMARY_LANG,
-        default_languae=app_settings.DEFAULT_LANG
+        default_language=app_settings.DEFAULT_LANG
     )
     
 @app.on_event('shutdown')

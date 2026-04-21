@@ -1,18 +1,18 @@
 from ..VectorDBInterface import VectorDBInterface
 from qdrant_client import models, QdrantClient
-from ..VectorDBEnums import DistacneMethodEnums
+from ..VectorDBEnums import DistanceMethodEnums
 from typing import List 
 import logging
-from models.db_schemes.mini_rag.schemes import RetrivedDocument
+from models.db_schemes.mini_rag.schemes import RetrievedDocument
 
 class QdrantDB(VectorDBInterface):
     def __init__(self, db_client: str, default_vector_size:int = 786, 
                  distance_method:str= None, index_threshold:int=100):
         self.db_client = db_client
         self.distance_method = None
-        if distance_method == DistacneMethodEnums.DOT.value:
+        if distance_method == DistanceMethodEnums.DOT.value:
             self.distance_method = models.Distance.DOT
-        elif distance_method == DistacneMethodEnums.COSINE.value:
+        elif distance_method == DistanceMethodEnums.COSINE.value:
             self.distance_method = models.Distance.COSINE
 
         self.logger = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class QdrantDB(VectorDBInterface):
             return None
         
         return [
-            RetrivedDocument(
+            RetrievedDocument(
                 **{
                         'text': result.payload['text'],
                         'score': result.score

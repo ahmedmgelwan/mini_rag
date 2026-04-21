@@ -8,15 +8,15 @@ class OpenAIProvider(LLMInterface):
     def __init__(self,
                  api_key: str,
                  base_url: str = None,
-                 defult_max_input_tokens: int = 1024,
-                 defult_max_output_tokens: int = 1024,
-                 temprature: float = 0.1
+                 default_max_input_tokens: int = 1024,
+                 default_max_output_tokens: int = 1024,
+                 temperature: float = 0.1
                  ):
         
         self.api_key = api_key
         self.base_url = base_url
-        self.defult_max_input_tokens = defult_max_input_tokens
-        self.temprature = temprature
+        self.default_max_input_tokens = default_max_input_tokens
+        self.temperature = temperature
 
         self.generation_model_id = None
         self.embedding_model_id = None
@@ -26,7 +26,7 @@ class OpenAIProvider(LLMInterface):
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.logger = logging.getLogger(__file__)
 
-    def set_genration_model(self, model_id):
+    def set_generation_model(self, model_id):
         self.generation_model_id = model_id
 
     def set_embedding_model(self, model_id, embedding_size):
@@ -38,7 +38,7 @@ class OpenAIProvider(LLMInterface):
         return text.strip()
     
     def generate_text(self, prompt: str, chat_history: list = [],
-                       max_output_tokens: int= None, temprature: float=None):
+                       max_output_tokens: int= None, temperature: float=None):
         if not self.client:
             self.logger.error('OpenAI client was not set')
             return None
@@ -46,8 +46,8 @@ class OpenAIProvider(LLMInterface):
         if not self.generation_model_id:
             self.logger.error('Generation model for OpenAI was not set')
             return None
-        max_output_tokens = max_output_tokens if max_output_tokens else self.defult_max_input_tokens
-        temprature = temprature if temprature else self.temprature
+        max_output_tokens = max_output_tokens if max_output_tokens else self.default_max_input_tokens
+        temperature = temperature if temperature else self.temperature
         chat_history.append(
             self.construct_prompt(prompt=prompt, role=OpenAIEnums.USER.value)
         )
@@ -55,7 +55,7 @@ class OpenAIProvider(LLMInterface):
                                         model= self.generation_model_id,
                                         messages=chat_history,
                                         max_tokens=max_output_tokens,
-                                        temperature=temprature
+                                        temperature=temperature
                                     )
         if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
             self.logger.error('Error while generating text with OpenAI')

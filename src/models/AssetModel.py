@@ -3,8 +3,8 @@ from .db_schemes import Asset
 from sqlalchemy.future import select
 
 class AssetModel(BaseDataModel):
-    def __init__(self, db_clinet):
-        super().__init__(db_clinet)
+    def __init__(self, db_client):
+        super().__init__(db_client)
 
     @classmethod
     async def create_instance(cls, db_client):

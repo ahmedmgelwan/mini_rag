@@ -9,14 +9,14 @@ class CoHereProvider(LLMInterface):
     def __init__(self,
                  api_key: str,
                  base_url: str = None,
-                 defult_max_input_tokens: int = 1024,
-                 defult_max_output_tokens: int = 1024,
-                 temprature: float = 0.1
+                 default_max_input_tokens: int = 1024,
+                 default_max_output_tokens: int = 1024,
+                 temperature: float = 0.1
                  ):
         self.api_key = api_key
         self.base_url = base_url
-        self.defult_max_input_tokens = defult_max_input_tokens
-        self.temprature = temprature
+        self.default_max_input_tokens = default_max_input_tokens
+        self.temperature = temperature
 
         self.generation_model_id = None
         self.embedding_model_id = None
@@ -26,7 +26,7 @@ class CoHereProvider(LLMInterface):
         
         self.logger = logging.getLogger(__name__)
 
-    def set_genration_model(self, model_id: str):
+    def set_generation_model(self, model_id: str):
         self.generation_model_id = model_id
 
 
@@ -35,12 +35,12 @@ class CoHereProvider(LLMInterface):
         self.embedding_size = embedding_size
 
     
-    def processing_text(self, text: str):
+    def process_text(self, text: str):
         # Don't truncate here to preserve full context including question
         return text.strip()
     
     def generate_text(self, prompt: str, chat_history: list = [],
-                       max_output_tokens: int= None, temprature: float=None):
+                       max_output_tokens: int= None, temperature: float=None):
         
         if not self.client:
             self.logger.error("CoHere client was not set")
@@ -50,16 +50,16 @@ class CoHereProvider(LLMInterface):
             self.logger.error('Generation model for CoHere was not set')
             return None
         
-        max_output_tokens = max_output_tokens if max_output_tokens else self.defult_max_input_tokens
-        temprature = temprature if temprature else self.temprature
+        max_output_tokens = max_output_tokens if max_output_tokens else self.default_max_input_tokens
+        temperature = temperature if temperature else self.temperature
 
         response = self.client.chat(
             model=self.generation_model_id,
             chat_history=chat_history,
-            max_input_tokens=self.defult_max_input_tokens,
+            max_input_tokens=self.default_max_input_tokens,
             max_tokens=max_output_tokens,
-            temperature=temprature,
-            message=self.processing_text(prompt)
+            temperature=temperature,
+            message=self.process_text(prompt)
         )
         if not response or not response.text:
             self.logger.error('Error while generating text with CoHere')
@@ -82,7 +82,7 @@ class CoHereProvider(LLMInterface):
         
         response = self.client.embed(
             model= self.embedding_model_id,
-            texts= [self.processing_text(text)],
+            texts= [self.process_text(text)],
             input_type=input_type,
             embedding_types=['float']
         )
@@ -93,5 +93,5 @@ class CoHereProvider(LLMInterface):
     def construct_prompt(self, prompt: str, role:str):
         return {
             'role': role,
-            'text': self.processing_text(prompt)
+            'text': self.process_text(prompt)
         }

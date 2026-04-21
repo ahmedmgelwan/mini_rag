@@ -1,1 +1,1 @@
-from .schemes import Project, Asset, DataChunk, RetrivedDocument
+from .schemes import Project, Asset, DataChunk, RetrievedDocument

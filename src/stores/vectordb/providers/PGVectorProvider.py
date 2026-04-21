@@ -1,10 +1,10 @@
 from ..VectorDBInterface import VectorDBInterface
-from ..VectorDBEnums import (DistacneMethodEnums, PGVectorTableSchemeEnums,
+from ..VectorDBEnums import (DistanceMethodEnums, PGVectorTableSchemeEnums,
                            PGVectorDistanceMethodEnums, PGvectorIndexTypeEnums)
 
 import logging
 from typing import List
-from models.db_schemes import RetrivedDocument
+from models.db_schemes import RetrievedDocument
 from sqlalchemy.sql import text as sql_text
 from sqlalchemy.orm import sessionmaker
 import json
@@ -22,9 +22,9 @@ class PGVectorProvider(VectorDBInterface):
 
         self.logger = logging.getLogger('uvicorn')
 
-        if self.distance_method == DistacneMethodEnums.COSINE.value:
+        if self.distance_method == DistanceMethodEnums.COSINE.value:
             self.distance_method = PGVectorDistanceMethodEnums.COSINE.value
-        elif self.distance_method == DistacneMethodEnums.DOT.value:
+        elif self.distance_method == DistanceMethodEnums.DOT.value:
             self.distance_method = PGVectorDistanceMethodEnums.DOT.value
         self.default_index_name = lambda collection_name: f'{collection_name}_vector_idx'
 
@@ -242,7 +242,7 @@ class PGVectorProvider(VectorDBInterface):
             result = await session.execute(search_sql, {'vector':vector})
             records = result.fetchall()
             return [
-                RetrivedDocument(
+                RetrievedDocument(
                     text=text, score= score
                 ) 
                 for text, score in records

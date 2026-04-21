@@ -32,7 +32,7 @@ class NLPController(BaseController):
             json.dumps(collection_info, default=lambda x: x.__dict__)
         )
     
-    async def index_into_vecto_db(self, project: Project, chunks: List[DataChunk], chunk_ids: List[int], do_reset: bool=False):
+    async def index_into_vector_db(self, project: Project, chunks: List[DataChunk], chunk_ids: List[int], do_reset: bool=False):
         collection_name = self.create_collection(project.project_id)
         texts = [chunk.chunk_text for chunk in chunks]
         metadatas = [chunk.chunk_metadata for chunk in chunks]

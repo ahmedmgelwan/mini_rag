@@ -6,7 +6,7 @@ class VectorDBEnums(Enum):
     PGVECTOR = 'PGVECTOR'
 
 
-class DistacneMethodEnums(Enum):
+class DistanceMethodEnums(Enum):
     DOT = 'dot'
     COSINE = 'cosine'
 
