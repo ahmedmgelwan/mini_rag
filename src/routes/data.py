@@ -37,7 +37,7 @@ async def upload(request:Request,project_id:str ,file:UploadFile, app_settings:S
     file_path, file_id = data_controller.generate_unique_file_path(project_id,file.filename)
     try:
         async with aiofiles.open(file_path,'wb') as f:
-            while chunk := await file.read(app_settings.GENERATION_DAFAULT_CHUNK_SIZE):
+            while chunk := await file.read(app_settings.FILE_DEFUALT_CHUNK_SIZE):
                 await f.write(chunk)
         
         asset_model = await AssetModel.create_instance(request.app.db_client)
@@ -70,7 +70,7 @@ async def process(request:Request, project_id:str, process_request: ProcessReque
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
 
-    asset_model = AssetModel(request.app.db_client)
+    asset_model = await AssetModel.create_instance(request.app.db_client)
     project_file_ids = {}
     if process_request.file_id:
             asset_record = await asset_model.get_asset_record(project.project_id,process_request.file_id)
