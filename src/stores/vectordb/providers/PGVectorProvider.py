@@ -31,9 +31,11 @@ class PGVectorProvider(VectorDBInterface):
     async def connect(self):
         async with self.db_client() as session:
             async with session.begin():
+                # Serialize extension creation across app workers to avoid race conditions.
+                lock_sql = sql_text("SELECT pg_advisory_xact_lock(hashtext('min_rag_pgvector_extension_lock'))")
                 create_ext_sql = sql_text('CREATE EXTENSION IF NOT EXISTS vector')
+                await session.execute(lock_sql)
                 await session.execute(create_ext_sql)
-                await session.commit()
 
     def disconnect(self):
         pass
@@ -139,8 +141,8 @@ class PGVectorProvider(VectorDBInterface):
                     return False
                 self.logger.info(f'START: creating index on collection {collection_name}.')
                 index_name = self.default_index_name(collection_name)
-                create_idx_sql = sql_text(f'CREATE INDEX {index_name} ON {collection_name}'
-                                          f'USING {index_type} {PGVectorTableSchemeEnums.VECTOR.value} {self.distance_method}')
+                create_idx_sql = sql_text(f'CREATE INDEX {index_name} ON {collection_name} '
+                                          f'USING {index_type} ({PGVectorTableSchemeEnums.VECTOR.value} {self.distance_method})')
             
                 await session.execute(create_idx_sql)
                 await session.commit()
