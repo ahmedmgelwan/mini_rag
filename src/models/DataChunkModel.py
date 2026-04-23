@@ -3,6 +3,7 @@ from .enums import DatabaseEnum
 from .db_schemes import DataChunk
 from sqlalchemy.future import select
 from sqlalchemy import func, delete
+from sqlalchemy.sql import text as sql_text
 
 class DataChunkModel(BaseDataModel):
     def __init__(self, db_client):
@@ -48,6 +49,20 @@ class DataChunkModel(BaseDataModel):
         project_id = int(project_id)
         async with self.db_client() as session:
             async with session.begin():
+                # First, delete rows from all vector collection tables for this project
+                # to avoid foreign key constraint violations
+                collection_prefix = f'collection_{project_id}'
+                list_collections_sql = sql_text(
+                    "SELECT tablename FROM pg_tables WHERE tablename LIKE :prefix"
+                )
+                result = await session.execute(list_collections_sql, {'prefix': f'{collection_prefix}%'})
+                collection_tables = result.scalars().all()
+                
+                for collection_table in collection_tables:
+                    delete_collection_rows_sql = sql_text(f'DELETE FROM {collection_table}')
+                    await session.execute(delete_collection_rows_sql)
+                
+                # Now safe to delete the chunks
                 query = delete(DataChunk).where(DataChunk.chunk_project_id == project_id)
                 result = await session.execute(query)
             result = result.rowcount
